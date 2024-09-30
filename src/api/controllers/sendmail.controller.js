@@ -8,15 +8,15 @@ export const sendmailHandler = async (req, res) => {
     host: process.env.MAIL_HOST ? process.env.MAIL_HOST : "",
     port: process.env.MAIL_PORT ? process.env.MAIL_PORT : "",
     auth: {
-      user: process.env.MAIL_USER ? process.env.MAIL_USER : "", // Replace with your Gmail email
-      pass: process.env.MAIL_PASS ? process.env.MAIL_PASS : "",  // Replace with your Gmail app password
+      user: process.env.MAIL_USER ? process.env.MAIL_USER : "",
+      pass: process.env.MAIL_PASS ? process.env.MAIL_PASS : "",
     },
   });
 
   // Email content and recipient details
   const mailOptions = {
-    from: email, // Sender's email
-    to: process.env.MAIL_TARGET ? process.env.MAIL_TARGET : "", // Replace with your email where the contact form emails should be sent
+    from: email,
+    to: process.env.MAIL_TARGET ? process.env.MAIL_TARGET : "",
     subject: subject || 'New Contact Form Submission',
     text: `You received a new message from ${firstName} ${lastName} (${email}):\n\n${message}`,
   };

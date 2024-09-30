@@ -1,13 +1,20 @@
 import express from 'express';
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
+import cors from 'cors';
 import bodyParser from 'body-parser';
-import mailRouter from './src/api/routes/sendmail.routes.js'
+import mailRouter from './src/api/routes/sendmail.routes.js';
 
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3030
 
+const corsOptions = {
+    origin: ['http://localhost:3000', 'http://localhost:3030'],
+    default: 'http://localhost:3000'
+}
+
+app.use(cors(corsOptions))
 app.use(bodyParser.json())
 
 app.use(mailRouter)
