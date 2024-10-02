@@ -7,10 +7,10 @@ import mailRouter from './src/api/routes/sendmail.routes.js';
 dotenv.config()
 
 const app = express()
-const port = process.env.PORT || 3030
+const port = process.env.PORT || 5000
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3030'],
+    origin: ['http://localhost:3000', 'http://localhost:3030', 'http://localhost:5000', 'https://pipopa.id'],
     default: 'http://localhost:3000'
 }
 
