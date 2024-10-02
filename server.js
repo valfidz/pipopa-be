@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 
 app.use(mailRouter)
 
-app.get('/checkhealth', (req, res) => {
+app.get('/api/checkhealth', (req, res) => {
   res.send('Backend 1.0 OK')
 })
 
