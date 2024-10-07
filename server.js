@@ -23,7 +23,7 @@ app.use(bodyParser.json())
 
 app.use(mailRouter)
 
-app.get('/api', (req, res) => {
+app.get('/', (req, res) => {
   res.send('Backend app 1.0')
 })
 
