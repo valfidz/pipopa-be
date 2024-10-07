@@ -14,7 +14,7 @@ const app = express()
 const server = http.createServer(app)
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3030', 'http://localhost:5000', 'https://pipopa.id'],
+    origin: ['http://localhost:3000', 'http://localhost:3030', 'http://localhost:5000', 'https://pipopa.id', process.env.BE_SITE],
     default: 'http://localhost:3000'
 }
 
@@ -23,7 +23,7 @@ app.use(bodyParser.json())
 
 app.use(mailRouter)
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.send('Backend app 1.0')
 })
 
