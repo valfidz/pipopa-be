@@ -1,8 +1,8 @@
-import express from 'express'
-import { sendmailHandler } from '../controllers/sendmail.controller.js'
+const express = require('express');
+const { sendmailHandler } = require('../controllers/sendmail.controller.js');
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/api/sendmail', sendmailHandler)
+router.post('/api/sendmail', sendmailHandler);
 
-export default router
+module.exports = router;

@@ -1,7 +1,7 @@
-import nodemailer from 'nodemailer'
+const nodemailer = require('nodemailer');
 
-export const sendmailHandler = async (req, res) => {
-    const { firstName, lastName, email, subject, message } = req.body;
+const sendmailHandler = async (req, res) => {
+  const { firstName, lastName, email, subject, message } = req.body;
 
   // Set up the nodemailer transport using SMTP
   const transporter = nodemailer.createTransport({
@@ -29,4 +29,6 @@ export const sendmailHandler = async (req, res) => {
     console.error('Error sending email:', error);
     res.status(500).json({ message: 'Failed to send email' });
   }
-}
+};
+
+module.exports = { sendmailHandler };

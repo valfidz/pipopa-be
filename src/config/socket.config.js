@@ -1,16 +1,18 @@
-import { Server } from "socket.io";
+const { Server } = require('socket.io');
 
 let _io;
 
-export const setIO = (server) => {
+const setIO = (server) => {
     _io = new Server(server, {
         cors: {
             origin: "*"
         }
-    })
+    });
     return _io;
-}
+};
 
-export const getIO = () => {
+const getIO = () => {
     return _io;
-}
+};
+
+module.exports = { setIO, getIO };
