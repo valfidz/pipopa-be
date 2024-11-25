@@ -5,6 +5,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const mailRouter = require('./src/api/routes/sendmail.routes.js');
 const { setIO } = require('./src/config/socket.config.js');
+const postRoutes = require('./src/api/routes/post.routes.js');
 
 dotenv.config();
 
@@ -21,7 +22,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+// Routes
 app.use(mailRouter);
+app.use('/api', postRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend app 1.0');
