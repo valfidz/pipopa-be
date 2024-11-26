@@ -18,7 +18,7 @@ const upload = require('../../config/multer');
 
 // Admin routes (all posts, including drafts)
 router.post('/posts', upload.single('featuredImage'), postController.create);
-router.get('/posts', postController.getAll);
+router.get('/posts', postController.getAllAdmin);
 router.get('/posts/:slug', postController.getOne);
 router.put('/posts/:slug', upload.single('featuredImage'), postController.update);
 router.patch('/posts/:slug/status', postController.updateStatus); // New endpoint for status updates
@@ -29,7 +29,7 @@ router.post('/posts/:slug/restore', postController.restore);
 router.get('/public/all', (req, res, next) => {
   req.query.public = 'true';
   next();
-}, postController.getAll);
+}, postController.getAllPublic);
 
 router.get('/public/:slug', (req, res, next) => {
   req.query.public = 'true';

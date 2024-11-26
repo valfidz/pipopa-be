@@ -140,26 +140,14 @@ class PostController {
   }
 
   // Get all posts - with option to filter by status
-  async getAll(req, res) {
+  async getAllAdmin(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
       const status = req.query.status; // Optional status filter
-      const isPublic = req.query.public === 'true'; // Check if this is a public request
 
-      let whereClause = "deleted_at IS NULL";
-    //   let params = [limit, offset];
-
-      // For public requests, only show published posts
-      if (isPublic) {
-        whereClause += " AND status = 'published'";
-      } 
-      // For admin requests, filter by status if provided
-      else if (status) {
-        whereClause += ` AND status = '${status}'`;
-        // params.unshift(status);
-      }
+      let whereClause = `deleted_at IS NULL AND status = '${status}'`;
 
       const [countResults] = await db.promise().query(
         `SELECT COUNT(*) as total FROM posts WHERE ${whereClause}`
@@ -172,6 +160,43 @@ class PostController {
                 meta_title, meta_description, keywords, status, created_at, updated_at 
          FROM posts 
          WHERE ${whereClause}
+         ORDER BY created_at DESC 
+         LIMIT ${limit} OFFSET ${offset}`
+      );
+
+      res.json({
+        posts,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          currentPage: page,
+          limit
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      res.status(500).json({ message: "Database error" });
+    }
+  }
+
+  // Get all posts for public viewer
+  async getAllPublic(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+
+      const [countResults] = await db.promise().query(
+        `SELECT COUNT(*) as total FROM posts WHERE deleted_at IS NULL AND status = 'published'`
+      );
+
+      const total = countResults[0].total;
+
+      const [posts] = await db.promise().execute(
+        `SELECT id, title, slug, category, featured_image, content, author, 
+                meta_title, meta_description, keywords, status, created_at, updated_at 
+         FROM posts 
+         WHERE deleted_at IS NULL AND status = 'published'
          ORDER BY created_at DESC 
          LIMIT ${limit} OFFSET ${offset}`
       );
