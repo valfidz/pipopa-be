@@ -90,6 +90,7 @@
 const { db } = require('../../config/database');
 const slugify = require('slugify');
 const { v4: uuidv4 } = require('uuid');
+const { post } = require('../routes/sendmail.routes');
 
 class PostController {
   async create(req, res) {
@@ -217,20 +218,42 @@ class PostController {
   }
 
   // Get single post - with public/private handling
-  async getOne(req, res) {
+  async getOneAdmin(req, res) {
     try {
-      const isPublic = req.query.public === 'true';
-      let whereClause = "slug = ? AND deleted_at IS NULL";
-      
-      if (isPublic) {
-        whereClause += " AND status = 'published'";
-      }
+      const postId = parseInt(req.params.id)
+    //   let whereClause = "id = ? AND deleted_at IS NULL";
 
       const [results] = await db.promise().execute(
         `SELECT id, title, slug, category, featured_image, content, author, 
                 meta_title, meta_description, keywords, status, created_at, updated_at 
          FROM posts 
-         WHERE ${whereClause}`,
+         WHERE id = ? AND deleted_at IS NULL`,
+        [postId]
+      );
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      res.json(results[0]);
+    } catch (error) {
+      console.error("Error fetching post:", error);
+      res.status(500).json({ message: "Database error" });
+    }
+  }
+
+  // Get one post for public viewer
+  async getOnePublic(req, res) {
+    try {
+    //   let whereClause = "slug = ? AND deleted_at IS NULL AND status = 'published'";
+
+      const [results] = await db.promise().execute(
+        `SELECT id, title, slug, category, featured_image, content, author, 
+                meta_title, meta_description, keywords, status, created_at, updated_at 
+         FROM posts 
+         WHERE slug = ?
+         AND deleted_at IS NULL
+         AND status = 'published'`,
         [req.params.slug]
       );
 
