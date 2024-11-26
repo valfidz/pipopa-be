@@ -20,10 +20,10 @@ const upload = require('../../config/multer');
 router.post('/posts', upload.single('featuredImage'), postController.create);
 router.get('/posts', postController.getAllAdmin);
 router.get('/posts/:id', postController.getOneAdmin);
-router.put('/posts/:slug', upload.single('featuredImage'), postController.update);
-router.patch('/posts/:slug/status', postController.updateStatus); // New endpoint for status updates
-router.delete('/posts/:slug', postController.delete);
-router.post('/posts/:slug/restore', postController.restore);
+router.put('/posts/:id', upload.single('featuredImage'), postController.update);
+router.patch('/posts/:id/status', postController.updateStatus); // New endpoint for status updates
+router.delete('/posts/:id', postController.delete);
+router.post('/posts/:id/restore', postController.restore);
 
 // Public routes (only published posts)
 router.get('/public/all', (req, res, next) => {

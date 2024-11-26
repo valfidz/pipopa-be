@@ -292,6 +292,8 @@ class PostController {
         status,
       ];
 
+      const postId = parseInt(req.params.id);
+
       let updateQuery = `
         UPDATE posts 
         SET title = ?, category = ?, content = ?, author = ?, 
@@ -303,8 +305,8 @@ class PostController {
         updateFields.push(req.file.filename);
       }
 
-      updateQuery += " WHERE slug = ? AND deleted_at IS NULL";
-      updateFields.push(req.params.slug);
+      updateQuery += " WHERE id = ? AND deleted_at IS NULL";
+      updateFields.push(postId);
 
       const [results] = await db.promise().execute(updateQuery, updateFields);
 
@@ -323,14 +325,15 @@ class PostController {
   async updateStatus(req, res) {
     try {
       const { status } = req.body;
+      const postId = parseInt(req.params.id)
 
       if (!['draft', 'published'].includes(status)) {
         return res.status(400).json({ message: "Invalid status value" });
       }
 
       const [results] = await db.promise().execute(
-        "UPDATE posts SET status = ? WHERE slug = ? AND deleted_at IS NULL",
-        [status, req.params.slug]
+        "UPDATE posts SET status = ? WHERE id = ? AND deleted_at IS NULL",
+        [status, postId]
       );
 
       if (results.affectedRows === 0) {
@@ -346,9 +349,10 @@ class PostController {
 
   async delete(req, res) {
     try {
+      const postId = parseInt(req.params.id)
       const [results] = await db.promise().execute(
         "UPDATE posts SET deleted_at = CURRENT_TIMESTAMP WHERE slug = ? AND deleted_at IS NULL",
-        [req.params.slug]
+        [postId]
       );
 
       if (results.affectedRows === 0) {
@@ -364,9 +368,10 @@ class PostController {
 
   async restore(req, res) {
     try {
+      const postId = parseInt(req.params.id)
       const [results] = await db.promise().execute(
-        "UPDATE posts SET deleted_at = NULL WHERE slug = ? AND deleted_at IS NOT NULL",
-        [req.params.slug]
+        "UPDATE posts SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL",
+        [postId]
       );
 
       if (results.affectedRows === 0) {
