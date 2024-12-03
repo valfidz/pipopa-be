@@ -8,6 +8,7 @@ const { setIO } = require('./src/config/socket.config.js');
 const { initDatabase } = require('./src/config/database.js');
 const postRoutes = require('./src/api/routes/post.routes.js');
 const imageRoutes = require('./src/api/routes/image.routes.js');
+const authRoutes = require('./src/api/routes/auth.routes.js');
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ initDatabase();
 app.use(mailRouter);
 app.use('/api', postRoutes);
 app.use('/api', imageRoutes);
+app.use('/api', authRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend app 1.0');
