@@ -8,6 +8,22 @@ class AuthController {
         try {
             const { username, email, password, role } = req.body;
 
+            if (!username) {
+                return res.status(400).json({ message: 'Username is required' });
+            }
+
+            if (!email) {
+                return res.status(400).json({ message: 'Email is required' });
+            }
+
+            if (!password) {
+                return res.status(400).json({ message: 'Password is required' });
+            }
+
+            if (!role) {
+                return res.status(400).json({ message: 'Role is required' });
+            }
+
             // check if user already exist
             const existingUser = await User.findByEmail(email);
             if (existingUser) {
@@ -46,6 +62,14 @@ class AuthController {
     static async login(req, res) {
         try {
             const { email, password } = req.body;
+
+            if (!email) {
+                return res.status(400).json({ message: 'Email is required' });
+            }
+
+            if (!password) {
+                return res.status(400).json({ message: 'Password is required' });
+            }
 
             // Find user by email
             const user = await User.findByEmail(email);
