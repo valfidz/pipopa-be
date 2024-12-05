@@ -324,8 +324,10 @@ class PostController {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const status = req.query.status;
+      const role = req.user.role;
+      const username = req.user.username;
 
-      const result = await PostModel.getAllAdminPosts(page, limit, status);
+      const result = await PostModel.getAllAdminPosts(page, limit, status, role, username);
 
       res.json(result);
     } catch (error) {
@@ -392,7 +394,7 @@ class PostController {
       const updated = await PostModel.updatePost(postId, postData);
 
       if (!updated) {
-        return res.status(404).json({ message: "Post not found" });
+        return res.status(404).json({ message: "Post update failed" });
       }
 
       res.json({ message: "Post updated successfully" });

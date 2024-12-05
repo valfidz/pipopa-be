@@ -243,7 +243,7 @@ class PostModel {
     let slug = slugBase;
 
     const generateUniqueSlug = async () => {
-      const [rows] = await db.promise().execute(
+      const [rows] = await db.execute(
         "SELECT COUNT(*) AS count FROM posts WHERE slug = ? AND deleted_at IS NULL",
         [slug]
       );
@@ -258,7 +258,7 @@ class PostModel {
 
     const finalSlug = await generateUniqueSlug();
 
-    await db.promise().execute(
+    await db.execute(
       `INSERT INTO posts (title, slug, category, featured_image, content, author, meta_title, meta_description, keywords, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [title, slug, category, featuredImage, content, author, metaTitle, metaDescription, keywords, status]
     );
@@ -267,17 +267,25 @@ class PostModel {
   }
 
   // Get all posts for admin (with status filter)
-  static async getAllAdminPosts(page = 1, limit = 10, status) {
+  static async getAllAdminPosts(page = 1, limit = 10, status, role, username) {
     const offset = (page - 1) * limit;
-    const whereClause = `deleted_at IS NULL AND status = '${status}'`;
+    let whereClause = `deleted_at IS NULL`;
 
-    const [countResults] = await db.promis().query(
+    if (status) {
+      whereClause += ` AND status = '${status}'`;
+    }
+
+    if (role && role == 'author') {
+      whereClause += ` AND author = '${username}'`;
+    }
+
+    const [countResults] = await db.query(
       `SELECT COUNT(*) as total FROM posts WHERE ${whereClause}`
     );
 
     const total = countResults[0].total;
 
-    const [posts] = await db.promise().execute(
+    const [posts] = await db.execute(
       `SELECT id, title, slug, category, featured_image, content, author, meta_title, meta_description, keywords, status, created_at, updated_at
       FROM posts
       WHERE ${whereClause}
@@ -300,13 +308,13 @@ class PostModel {
   static async getAllPublicPosts(page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
-    const [countResults] = await db.promise().query(
+    const [countResults] = await db.query(
       `SELECT COUNT(*) as total FROM posts WHERE deleted_at IS NULL AND status = 'published'`
     );
 
     const total = countResults[0].total;
 
-    const [posts] = await db.promise().execute(
+    const [posts] = await db.execute(
       `SELECT id, title, slug, category, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
@@ -328,7 +336,7 @@ class PostModel {
 
   // Get single post for admin
   static async getAdminPostById(postId) {
-    const [results] = await db.promise().execute(
+    const [results] = await db.execute(
       `SELECT id, title, slug, category, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
@@ -341,7 +349,7 @@ class PostModel {
 
   // Get single published post for public
   static async getPublicPostBySlug(slug) {
-    const [results] = await db.promise().execute(
+    const [results] = await db.execute(
       `SELECT id, title, slug, category, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
@@ -393,7 +401,7 @@ class PostModel {
     updateQuery += " WHERE id = ? AND deleted_at IS NULL";
     updateFields.push(postId);
 
-    const [results] = await db.promise().execute(updateQuery, updateFields);
+    const [results] = await db.execute(updateQuery, updateFields);
 
     return results.affectedRows > 0;
   }
@@ -404,7 +412,7 @@ class PostModel {
       throw new Error("Invalid status value");
     }
 
-    const [results] = await db.promise().execute(
+    const [results] = await db.execute(
       "UPDATE posts SET status = ? WHERE id = ? AND deleted_at IS NULL",
       [status, postId]
     );
@@ -414,7 +422,7 @@ class PostModel {
 
   // Soft delete post
   static async deletePost(postId) {
-    const [results] = await db.promise().execute(
+    const [results] = await db.execute(
       "UPDATE posts SET deleted_at = CURRENT_TIMESTAMP WHERE id = ? AND deleted_at IS NULL",
       [postId]
     );
@@ -424,7 +432,7 @@ class PostModel {
 
   // Restore soft-deleted post
   static async restorePost(postId) {
-    const [results] = await db.promise().execute(
+    const [results] = await db.execute(
       "UPDATE posts SET deleted_at = NULL WHERE id = ? AND deleted_at IS NOT NULL",
       [postId]
     );

@@ -33,13 +33,25 @@ const initDatabase = async () => {
       );
     `);
 
+    // Create category table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NULL DEFAULT NULL,
+        deleted_at TIMESTAMP NULL DEFAULT NULL
+      )
+    `);
+
     // Create posts table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS posts (
         id INT AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
-        category VARCHAR(255),
+        category_id INT,
+        user_id VARCHAR(255),
         featured_image VARCHAR(255),
         content TEXT,
         author VARCHAR(255),
@@ -49,9 +61,24 @@ const initDatabase = async () => {
         status ENUM('draft', 'published') DEFAULT 'draft',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        deleted_at TIMESTAMP NULL
+        deleted_at TIMESTAMP NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
       );
     `);
+
+    // Create post view table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS view_counts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        post_id INT UNIQUE,
+        view_count INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP NULL,
+        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE 
+      )
+    `)
 
     connection.release(); // Release the connection back to the pool
     console.log("Database initialized.");

@@ -28,43 +28,83 @@ class UserController {
         }
     }
 
-    // Get user by email
-    static async getUserByEmail(req, res) {
+    // Get user
+    static async getUser(req, res) {
         try {
-            if (!req.params.email) {
-                return res.status(400).json({ message: 'Email is required' });
+            const email = req.body.email;
+            const username = req.body.username;
+            let user;
+
+            if (email) {
+                user = await User.findByEmail(email);
             }
 
-            const user = await User.findByEmail(req.params.email);
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' })
+            if (username) {
+                user = await User.findByUsername(username);
             }
 
-            res.status(200).json({user});
+            if (!email && !username) {
+                return res.status(400).json({ message: 'Required parameter is missing' });
+            }
+
+            res.status(200).json({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     }
+
+    // Get user by email
+    // static async getUserByEmail(req, res) {
+    //     try {
+    //         if (!req.body.email) {
+    //             return res.status(400).json({ message: 'Email is required' });
+    //         }
+
+    //         const user = await User.findByEmail(req.body.email);
+
+    //         if (!user) {
+    //             return res.status(404).json({ message: 'User not found' })
+    //         }
+
+    //         res.status(200).json({
+    //             id: user.id,
+    //             username: user.username,
+    //             email: user.email,
+    //             role: user.role
+    //         });
+    //     } catch (error) {
+    //         res.status(500).json({ error: error.message });
+    //     }
+    // }
 
     // Get user by username
-    static async getUserByUsername(req, res) {
-        try {
-            if (!req.params.username) {
-                return res.status(400).json({ message: 'Username is required' });
-            }
+    // static async getUserByUsername(req, res) {
+    //     try {
+    //         if (!req.body.username) {
+    //             return res.status(400).json({ message: 'Username is required' });
+    //         }
 
-            const user = await User.findByUsername(req.params.username);
+    //         const user = await User.findByUsername(req.body.username);
 
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
+    //         if (!user) {
+    //             return res.status(404).json({ message: 'User not found' });
+    //         }
 
-            res.status(200).json(user);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
+    //         res.status(200).json({
+    //             id: user.id,
+    //             username: user.username,
+    //             email: user.email,
+    //             role: user.role
+    //         });
+    //     } catch (error) {
+    //         res.status(500).json({ error: error.message });
+    //     }
+    // }
 
     // Update user
     static async updateUser(req, res) {
@@ -93,7 +133,7 @@ class UserController {
             }
 
             await User.delete(id);
-            
+
             res.status(200).json({ message: 'User deleted' });
         } catch (error) {
             res.status(500).json({ error: error.message });
