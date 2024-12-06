@@ -100,7 +100,7 @@ const isPostOwner = async (req, res, next) => {
         }
 
         // for authors, check if they own the post
-        const postId = req.params.postId || req.body.postId
+        const postId = req.params.id || req.body.postId
 
         if (!postId) {
             return res.status(400).json({
@@ -122,9 +122,15 @@ const isPostOwner = async (req, res, next) => {
                 })
             }
 
-            if (posts[0].author != req.user.username) {
+            // if (posts[0].author != req.user.username) {
+            //     return res.status(403).json({
+            //         error: 'You are not authorized to modify this post'
+            //     });
+            // }
+
+            if (posts[0].user_id !== req.user.id) {
                 return res.status(403).json({
-                    error: 'You are not authorized to modify this post'
+                    error: 'You are not authorized to access this page'
                 });
             }
 

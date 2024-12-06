@@ -303,10 +303,57 @@ const { post } = require('../routes/sendmail.routes');
 class PostController {
   async create(req, res) {
     try {
+      const title = req.body.title ? req.body.title : "";
+      const categoryId = req.body.category ? parseInt(req.body.category) : null;
+      const userId = req.user.id ? req.user.id : "";
+      const content = req.body.content ? req.body.content : "";
+      const author = req.body.author ? req.body.author : "";
+      const metaTitle = req.body.meta_title ? req.body.meta_title : "";
+      const metaDescription = req.body.meta_description ? req.body.meta_description : "";
+      const keywords = req.body.keywords ? req.body.keywords : "";
+      const status = req.body.status ? req.body.status : "draft";
       const featuredImage = req.file ? req.file.filename : null;
 
+      if (!title) {
+        return res.status(400).json({
+          message: 'Title is required'
+        })
+      }
+
+      if (!categoryId) {
+        return res.status(400).json({
+          message: 'Category is required'
+        })
+      }
+
+      if (!userId) {
+        return res.status(400).json({
+          message: 'User ID is required'
+        })
+      }
+
+      if (!content) {
+        return res.status(400).json({
+          message: 'Content is required'
+        })
+      }
+
+      if (!author) {
+        return res.status(400).json({
+          message: 'Author is required'
+        })
+      }
+
       const postData = {
-        ...req.body,
+        title,
+        categoryId,
+        userId,
+        content,
+        author,
+        metaTitle,
+        metaDescription,
+        keywords,
+        status,
         featuredImage
       };
 
@@ -324,10 +371,22 @@ class PostController {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const status = req.query.status;
-      const role = req.user.role;
-      const username = req.user.username;
+      const role = req.user.role ? req.user.role : "";
+      const userId = req.user.id ? req.user.id : "";
 
-      const result = await PostModel.getAllAdminPosts(page, limit, status, role, username);
+      if (!role) {
+        return res.status(400).json({
+          message: 'User role is required'
+        })
+      }
+
+      if (!userId) {
+        return res.status(400).json({
+          message: 'User ID is required'
+        })
+      }
+
+      const result = await PostModel.getAllAdminPosts(page, limit, status, role, userId);
 
       res.json(result);
     } catch (error) {
@@ -353,6 +412,13 @@ class PostController {
   async getOneAdmin(req, res) {
     try {
       const postId = parseInt(req.params.id);
+
+      if (!postId) {
+        return res.status(400).json({
+          message: 'Post ID is required'
+        })
+      }
+
       const post = await PostModel.getAdminPostById(postId);
 
       if (!post) {
@@ -368,6 +434,12 @@ class PostController {
 
   async getOnePublic(req, res) {
     try {
+      if (!req.params.slug) {
+        return res.status(400).json({
+          message: "Post's slug is required"
+        });
+      }
+
       const post = await PostModel.getPublicPostBySlug(req.params.slug);
 
       if (!post) {
@@ -383,11 +455,65 @@ class PostController {
 
   async update(req, res) {
     try {
-      const postId = parseInt(req.params.id);
+      const postId = req.params.id ? parseInt(req.params.id) : null;
+
+      if (!postId) {
+        return res.status(400).json({
+          message: 'Post ID is required'
+        })
+      }
+
+      const title = req.body.title ? req.body.title : "";
+      const categoryId = req.body.category ? parseInt(req.body.category) : null;
+      const userId = req.user.id ? req.user.id : "";
+      const content = req.body.content ? req.body.content : "";
+      const author = req.body.author ? req.body.author : "";
+      const metaTitle = req.body.meta_title ? req.body.meta_title : "";
+      const metaDescription = req.body.meta_description ? req.body.meta_description : "";
+      const keywords = req.body.keywords ? req.body.keywords : "";
+      const status = req.body.status ? req.body.status : "draft";
       const featuredImage = req.file ? req.file.filename : null;
 
+      if (!title) {
+        return res.status(400).json({
+          message: 'Title is required'
+        })
+      }
+
+      if (!categoryId) {
+        return res.status(400).json({
+          message: 'Category is required'
+        })
+      }
+
+      if (!userId) {
+        return res.status(400).json({
+          message: 'User ID is required'
+        })
+      }
+
+      if (!content) {
+        return res.status(400).json({
+          message: 'Content is required'
+        })
+      }
+
+      if (!author) {
+        return res.status(400).json({
+          message: 'Author is required'
+        })
+      }
+
       const postData = {
-        ...req.body,
+        title,
+        categoryId,
+        userId,
+        content,
+        author,
+        metaTitle,
+        metaDescription,
+        keywords,
+        status,
         featuredImage
       };
 
@@ -409,6 +535,12 @@ class PostController {
       const { status } = req.body;
       const postId = parseInt(req.params.id);
 
+      if (!postId) {
+        return res.status(400).json({
+          message: 'Post ID is required'
+        })
+      }
+
       const updated = await PostModel.updatePostStatus(postId, status);
 
       if (!updated) {
@@ -428,6 +560,13 @@ class PostController {
   async delete(req, res) {
     try {
       const postId = parseInt(req.params.id);
+
+      if (!postId) {
+        return res.status(400).json({
+          message: 'Post ID is required'
+        })
+      }
+
       const deleted = await PostModel.deletePost(postId);
 
       if (!deleted) {
@@ -444,6 +583,13 @@ class PostController {
   async restore(req, res) {
     try {
       const postId = parseInt(req.params.id);
+
+      if (!postId) {
+        return res.status(400).json({
+          message: 'Post ID is required'
+        })
+      }
+
       const restored = await PostModel.restorePost(postId);
 
       if (!restored) {

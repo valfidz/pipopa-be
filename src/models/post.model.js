@@ -229,13 +229,14 @@ class PostModel {
   static async createPost(postData) {
     const {
       title,
-      category,
+      categoryId,
+      userId,
       content,
       author,
       metaTitle,
       metaDescription,
       keywords,
-      status = 'draft',
+      status,
       featuredImage
     } = postData;
 
@@ -259,15 +260,15 @@ class PostModel {
     const finalSlug = await generateUniqueSlug();
 
     await db.execute(
-      `INSERT INTO posts (title, slug, category, featured_image, content, author, meta_title, meta_description, keywords, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, slug, category, featuredImage, content, author, metaTitle, metaDescription, keywords, status]
+      `INSERT INTO posts (title, slug, category_id, user_id, featured_image, content, author, meta_title, meta_description, keywords, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, slug, categoryId, userId, featuredImage, content, author, metaTitle, metaDescription, keywords, status]
     );
 
     return finalSlug;
   }
 
   // Get all posts for admin (with status filter)
-  static async getAllAdminPosts(page = 1, limit = 10, status, role, username) {
+  static async getAllAdminPosts(page = 1, limit = 10, status, role, userId) {
     const offset = (page - 1) * limit;
     let whereClause = `deleted_at IS NULL`;
 
@@ -276,7 +277,7 @@ class PostModel {
     }
 
     if (role && role == 'author') {
-      whereClause += ` AND author = '${username}'`;
+      whereClause += ` AND user_id = '${userId}'`;
     }
 
     const [countResults] = await db.query(
@@ -286,7 +287,7 @@ class PostModel {
     const total = countResults[0].total;
 
     const [posts] = await db.execute(
-      `SELECT id, title, slug, category, featured_image, content, author, meta_title, meta_description, keywords, status, created_at, updated_at
+      `SELECT id, title, slug, category_id, user_id, featured_image, content, author, meta_title, meta_description, keywords, status, created_at, updated_at
       FROM posts
       WHERE ${whereClause}
       ORDER BY created_at DESC
@@ -366,7 +367,8 @@ class PostModel {
   static async updatePost(postId, postData) {
     const {
       title,
-      category,
+      categoryId,
+      userId,
       content,
       author,
       metaTitle,
@@ -378,7 +380,8 @@ class PostModel {
 
     let updateFields = [
       title,
-      category,
+      categoryId,
+      userId,
       content,
       author,
       metaTitle,
@@ -389,7 +392,7 @@ class PostModel {
 
     let updateQuery = `
       UPDATE posts 
-      SET title = ?, category = ?, content = ?, author = ?, 
+      SET title = ?, category_id = ?, user_id = ?, content = ?, author = ?, 
           meta_title = ?, meta_description = ?, keywords = ?, status = ?
     `;
 
