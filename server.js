@@ -10,6 +10,7 @@ const postRoutes = require('./src/api/routes/post.routes.js');
 const imageRoutes = require('./src/api/routes/image.routes.js');
 const authRoutes = require('./src/api/routes/auth.routes.js');
 const userRoutes = require('./src/api/routes/user.routes.js');
+const categoryRoutes = require('./src/api/routes/category.routes.js');
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api', postRoutes);
 app.use('/api', imageRoutes);
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
+app.use('/api', categoryRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend app 1.0');

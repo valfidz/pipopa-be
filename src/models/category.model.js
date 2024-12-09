@@ -40,10 +40,10 @@ class CategoryModel {
         const connection = await db.getConnection();
         try {
             const [result] = await connection.execute(
-                `SELECT name FROM categories WHERE deleted_at IS NULL`
+                `SELECT id, name FROM categories WHERE deleted_at IS NULL`
             )
 
-            return result[0];
+            return result;
         } finally {
             connection.release();
         }
