@@ -1,7 +1,7 @@
 const CategoryModel = require('../../models/category.model');
 
 class CategoryController {
-    async create (req, res) {
+    static async create (req, res) {
         try {
             const name = req.body.name;
 
@@ -14,7 +14,7 @@ class CategoryController {
         }
     }
 
-    async getAllCategories (req, res) {
+    static async getAllCategories (req, res) {
         try {
             const result = await CategoryModel.getCategories();
 
@@ -25,7 +25,7 @@ class CategoryController {
         }
     }
 
-    async getCategory (req, res) {
+    static async getCategory (req, res) {
         try {
             const categoryId = parseInt(req.params.id);
 
@@ -38,7 +38,7 @@ class CategoryController {
         }
     }
 
-    async updateCategory (req, res) {
+    static async updateCategory (req, res) {
         try {
             const categoryId = parseInt(req.params.id);
             const name = req.body.name;
@@ -52,7 +52,7 @@ class CategoryController {
         }
     }
 
-    async deleteCategory (req, res) {
+    static async deleteCategory (req, res) {
         try {
             const categoryId = parseInt(req.params.id);
 

@@ -32,6 +32,20 @@ class User {
         }
     }
 
+    // Find all user
+    static async findAllUser() {
+        const connection = await db.getConnection();
+        try {
+            const [rows] = await connection.execute(
+                `SELECT * FROM users WHERE deleted_at IS NULL`
+            );
+
+            return rows || null;
+        } finally {
+            connection.release();
+        }
+    }
+
     // Find user by email
     static async findByEmail(email) {
         const connection = await db.getConnection();
@@ -62,6 +76,21 @@ class User {
         }
     }
 
+    // Find user by id
+    static async findById(id) {
+        const connection = await db.getConnection();
+        try {
+            const [rows] = await connection.execute(
+                `SELECT * FROM users WHERE id = ? AND deleted_at IS NULL`,
+                [id]
+            );
+
+            return rows[0] || null
+        } finally {
+            connection.release();
+        }
+    }
+
     // Update user
     static async update(userId, updateData) {
         const connection = await db.getConnection();
@@ -71,18 +100,49 @@ class User {
                 updateData.password = await hashPassword(updateData.password);
             }
 
-            const updateFields = Object.keys(updateData)
-                .map(key => `${key} = ?`)
-                .join(', ');
+            const username = updateData.username;
+            const email = updateData.email;
 
-            const values = [...Object.values(updateData), userId];
+            // const updateFields = Object.keys(updateData)
+            //     .map(key => `${key} = ?`)
+            //     .join(', ');
+
+            // const values = [...Object.values(updateData), userId];
+
+            // await connection.execute(
+            //     `UPDATE users
+            //     SET ${updateFields}, updated_at = NOW()
+            //     WHERE id = ? AND deleted_at IS NULL`,
+            //     values
+            // );
 
             await connection.execute(
                 `UPDATE users
-                SET ${updateFields}, updated_at = NOW()
+                SET username = ?, email = ?
                 WHERE id = ? AND deleted_at IS NULL`,
-                values
-            );
+                [username, email, userId]
+            )
+
+            return true;
+        } finally {
+            connection.release();
+        }
+    }
+
+    // Update password user
+    static async updatePassword(userId, updatePass) {
+        const connection = await db.getConnection();
+        try {
+            if (updatePass) {
+                updatePass = await hashPassword(updatePass);
+            }
+
+            await connection.execute(
+                `UPDATE users
+                SET password = ?
+                WHERE id = ? AND deleted_at IS NULL`,
+                [updatePass, userId]
+            )
 
             return true;
         } finally {
