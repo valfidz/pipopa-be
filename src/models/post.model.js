@@ -316,7 +316,7 @@ class PostModel {
     const total = countResults[0].total;
 
     const [posts] = await db.execute(
-      `SELECT id, title, slug, category, featured_image, content, author, 
+      `SELECT id, title, slug, category_id, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
        WHERE deleted_at IS NULL AND status = 'published'
@@ -338,7 +338,7 @@ class PostModel {
   // Get single post for admin
   static async getAdminPostById(postId) {
     const [results] = await db.execute(
-      `SELECT id, title, slug, category, featured_image, content, author, 
+      `SELECT id, title, slug, category_id, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
        WHERE id = ? AND deleted_at IS NULL`,
@@ -351,7 +351,7 @@ class PostModel {
   // Get single published post for public
   static async getPublicPostBySlug(slug) {
     const [results] = await db.execute(
-      `SELECT id, title, slug, category, featured_image, content, author, 
+      `SELECT id, title, slug, category_id, featured_image, content, author, 
               meta_title, meta_description, keywords, status, created_at, updated_at 
        FROM posts 
        WHERE slug = ?

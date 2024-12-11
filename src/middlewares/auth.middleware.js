@@ -95,7 +95,7 @@ const isPostOwner = async (req, res, next) => {
         }
 
         // for admin, always allow access
-        if (req.user.role === admin) {
+        if (req.user.role === "admin") {
             return next();
         }
 
@@ -112,7 +112,7 @@ const isPostOwner = async (req, res, next) => {
         const connection = await db.getConnection();
         try {
             const [posts] = await connection.execute(
-                'SELECT author FROM posts WHERE id = ?',
+                'SELECT user_id FROM posts WHERE id = ?',
                 [postId]
             );
 
