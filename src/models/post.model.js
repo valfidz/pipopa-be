@@ -259,12 +259,17 @@ class PostModel {
 
     const finalSlug = await generateUniqueSlug();
 
-    await db.execute(
+    const [result] = await db.execute(
       `INSERT INTO posts (title, slug, category_id, user_id, featured_image, content, author, meta_title, meta_description, keywords, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [title, slug, categoryId, userId, featuredImage, content, author, metaTitle, metaDescription, keywords, status]
     );
 
-    return finalSlug;
+    const postId = result.insertId;
+
+    return {
+      postId,
+      slug: finalSlug
+    };
   }
 
   // Get all posts for admin (with status filter)

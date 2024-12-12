@@ -298,7 +298,10 @@
 // }
 
 const PostModel = require('../../models/post.model');
-const { post } = require('../routes/sendmail.routes');
+const ViewCountModel = require('../../models/viewCount.model');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 class PostController {
   async create(req, res) {
@@ -358,8 +361,16 @@ class PostController {
       };
 
       const slug = await PostModel.createPost(postData);
+      
+      const postId = slug.postId;
 
-      res.status(201).json({ message: 'Post created successfully', slug });
+      const viewCount = await ViewCountModel.createCount(postId);
+
+      res.status(201).json({
+        message: 'Post created successfully',
+        slug,
+        viewCount
+      });
     } catch (error) {
       console.error("Error creating post: ", error);
       res.status(500).json({ message: "Error create post" });
@@ -441,12 +452,28 @@ class PostController {
       }
 
       const post = await PostModel.getPublicPostBySlug(req.params.slug);
+      let viewCount;
 
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      res.json(post);
+      const postId = post.id;
+      const getCount = await ViewCountModel.getCount(postId);
+
+      if (!getCount) {
+        return res.status(404).json({ message: 'Post count not found' })
+      }
+
+      viewCount = parseInt(getCount.view_count);
+      viewCount += 1;
+
+      const updateCount = await ViewCountModel.updateCount(postId, viewCount);
+
+      return res.status(200).json({
+        post,
+        viewCount
+      });
     } catch (error) {
       console.error("Error fetching post: ", error);
       return res.status(500).json({ message: "Error fetching post" });
