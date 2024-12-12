@@ -600,6 +600,11 @@ class PostController {
         return res.status(404).json({ message: "Post not found" });
       }
 
+      const deleteCount = await ViewCountModel.deleteCount(postId);
+      if (!deleteCount) {
+        return res.status(404).json({ message: 'View count not found' })
+      }
+
       res.json({ message: "Post deleted successfully" });
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -621,6 +626,11 @@ class PostController {
 
       if (!restored) {
         return res.status(404).json({ message: "Post not found or already restored" });
+      }
+
+      const restoreCount = await ViewCountModel.restoreCount(postId);
+      if (!restoreCount) {
+        return res.status(404).json({ message: 'View count not found or already resotred' });
       }
 
       res.json({ message: "Post restored successfully" });

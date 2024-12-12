@@ -60,6 +60,36 @@ class ViewCountModel {
             connection.release();
         }
     }
+
+    static async deleteCount(postId) {
+        const connection = await db.getConnection();
+        try {
+            const [results] = await connection.execute(
+                `UPDATE view_counts
+                SET deleted_at = CURRENT_TIMESTAMP
+                WHERE post_id = ${postId} AND deleted_at IS NULL`
+            )
+
+            return results.affectedRows > 0;
+        } finally {
+            connection.release();
+        }
+    }
+
+    static async restoreCount(postId) {
+        const connection = await db.getConnection();
+        try {
+            const [results] = await connection.execute(
+                `UPDATE view_counts
+                SET deleted_at = NULL
+                WHERE post_id = ${postId} AND deleted_at IS NOT NULL`
+            )
+
+            return results.affectedRows > 0;
+        } finally {
+            connection.release();
+        }
+    }
 }
 
 module.exports = ViewCountModel;
