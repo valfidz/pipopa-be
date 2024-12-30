@@ -274,39 +274,49 @@ class PostModel {
 
   // Get all posts for admin (with status filter)
   static async getAllAdminPosts(page = 1, limit = 10, status, role, userId) {
-    const offset = (page - 1) * limit;
-    let whereClause = `deleted_at IS NULL`;
-
-    if (status) {
-      whereClause += ` AND status = '${status}'`;
-    }
-
-    if (role && role == 'author') {
-      whereClause += ` AND user_id = '${userId}'`;
-    }
-
-    const [countResults] = await db.query(
-      `SELECT COUNT(*) as total FROM posts WHERE ${whereClause}`
-    );
-
-    const total = countResults[0].total;
-
-    const [posts] = await db.execute(
-      `SELECT id, title, slug, category_id, user_id, featured_image, content, author, meta_title, meta_description, keywords, status, created_at, updated_at
-      FROM posts
-      WHERE ${whereClause}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}`
-    );
-
-    return {
-      posts,
-      pagination: {
-        total,
-        pages: Math.ceil(total/limit),
-        currentPage: page,
-        limit
+    try {
+      const offset = (page - 1) * limit;
+      
+      let whereClause = 'p.deleted_at IS NULL';
+      let whereClauseCount = 'deleted_at IS NULL';
+  
+      if (status) {
+        whereClause += ` AND p.status = '${status}'`;
+        whereClauseCount += ` AND status = '${status}'`;
       }
+  
+      if ((role && role == 'author') && userId) {
+        whereClause += ` AND p.user_id = '${userId}'`;
+        whereClauseCount += ` AND user_id = '${userId}'`;
+      }
+  
+      const [countResults] = await db.query(
+        `SELECT COUNT(*) as total FROM posts WHERE ${whereClauseCount}`
+      );
+  
+      const total = countResults[0].total;
+  
+      const [posts] = await db.execute(
+        `SELECT p.id, p.title, p.slug, p.category_id, p.user_id, p.featured_image, p.content, p.author, p.meta_title, p.meta_description, p.keywords, p.status, c.name AS category_name, p.created_at, p.updated_at
+        FROM posts p
+        JOIN categories c ON p.category_id = c.id
+        WHERE ${whereClause}
+        ORDER BY p.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}`
+      );
+  
+      return {
+        posts,
+        pagination: {
+          total,
+          pages: Math.ceil(total/limit),
+          currentPage: page,
+          limit
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching all posts:', error);
+      throw new Error('Failed to fetch all posts')
     }
   };
 
@@ -343,10 +353,24 @@ class PostModel {
   // Get single post for admin
   static async getAdminPostById(postId) {
     const [results] = await db.execute(
-      `SELECT id, title, slug, category_id, featured_image, content, author, 
-              meta_title, meta_description, keywords, status, created_at, updated_at 
-       FROM posts 
-       WHERE id = ? AND deleted_at IS NULL`,
+      `SELECT
+          p.id,
+          p.title,
+          p.slug,
+          p.category_id,
+          p.featured_image,
+          p.content,
+          p.author,
+          p.meta_title,
+          p.meta_description,
+          p.keywords,
+          p.status,
+          p.created_at,
+          p.updated_at,
+          c.name as category_name
+      FROM posts p
+      JOIN categories c ON p.category_id = c.id
+      WHERE p.id = ? AND p.deleted_at IS NULL`,
       [postId]
     );
 

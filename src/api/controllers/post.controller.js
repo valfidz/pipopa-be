@@ -16,7 +16,11 @@ class PostController {
       const metaDescription = req.body.meta_description ? req.body.meta_description : "";
       const keywords = req.body.keywords ? req.body.keywords : "";
       const status = req.body.status ? req.body.status : "draft";
-      const featuredImage = req.file ? req.file.filename : null;
+      let featuredImage = req.file ? req.file.filename : null;
+
+      if (featuredImage) {
+        featuredImage = featuredImage.replace(/\s+/g, "_");
+      }
 
       if (!title) {
         return res.status(400).json({
