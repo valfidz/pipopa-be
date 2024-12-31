@@ -87,6 +87,8 @@ class PostController {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const status = req.query.status;
+      const search = req.query.search ? req.query.search : "";
+      const searchField = req.query.field ? req.query.field : "all";
       const role = req.user.role ? req.user.role : "";
       const userId = req.user.id ? req.user.id : "";
 
@@ -102,7 +104,7 @@ class PostController {
         })
       }
 
-      const result = await PostModel.getAllAdminPosts(page, limit, status, role, userId);
+      const result = await PostModel.getAllAdminPosts(page, limit, status, role, userId, search, searchField);
 
       res.json(result);
     } catch (error) {

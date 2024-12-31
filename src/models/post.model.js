@@ -273,49 +273,155 @@ class PostModel {
   }
 
   // Get all posts for admin (with status filter)
-  static async getAllAdminPosts(page = 1, limit = 10, status, role, userId) {
+  static async getAllAdminPosts(page = 1, limit = 10, status, role, userId, search, searchField) {
     try {
       const offset = (page - 1) * limit;
+      const numericPage  = parseInt(page);
+      const numericLimit = parseInt(limit);
       
       let whereClause = 'p.deleted_at IS NULL';
       let whereClauseCount = 'deleted_at IS NULL';
+      let whereParams = [];
+      let countParams = [];
   
       if (status) {
-        whereClause += ` AND p.status = '${status}'`;
-        whereClauseCount += ` AND status = '${status}'`;
+        whereClause += ` AND p.status = ?`;
+        whereClauseCount += ` AND status = ?`;
+        whereParams.push(status);
+        countParams.push(status);
       }
   
       if ((role && role == 'author') && userId) {
-        whereClause += ` AND p.user_id = '${userId}'`;
-        whereClauseCount += ` AND user_id = '${userId}'`;
+        whereClause += ` AND p.user_id = ?`;
+        whereClauseCount += ` AND user_id = ?`;
+        whereParams.push(userId);
+        countParams.push(userId);
+      }
+
+      // search condition
+      if (search && search.trim() !== '') {
+        const searchValue = `%${search.trim()}%`;
+
+        if (searchField == 'all') {
+          whereClause += ` AND (
+            p.title LIKE ? OR
+            p.author LIKE ? OR
+            c.name LIKE ? OR
+            p.status LIKE ? OR
+            DATE_FORMAT(p.created_at, '%d/%m/%Y') LIKE ?
+          )`;
+          whereParams.push(searchValue, searchValue, searchValue, searchValue, searchValue);
+
+          whereClauseCount += ` AND id IN (
+            SELECT p.id
+            FROM posts p
+            JOIN categories c ON p.category_id = c.id
+            WHERE p.deleted_at IS NULL
+            AND (
+              p.title LIKE ? OR 
+              p.author LIKE ? OR
+              c.name LIKE ? OR 
+              p.status LIKE ? OR 
+              DATE_FORMAT(p.created_at, '%d/%m/%Y') LIKE ?
+            )
+          )`;
+          countParams.push(searchValue, searchValue, searchValue, searchValue, searchValue);
+        } else {
+          switch (searchField) {
+            case 'title':
+              whereClause += ` AND p.title LIKE ?`;
+              whereClauseCount += ` AND title LIKE ?`;
+              whereParams.push(searchValue);
+              countParams.push(searchValue);
+              break;
+            case 'category':
+              whereClause += ` AND c.name LIKE ?`;
+              whereClauseCount = `${whereClauseCount} AND id IN (
+                SELECT p.id FROM posts p
+                JOIN categories c ON p.category_id = c.id
+                WHERE c.name LIKE ? AND p.deleted_at IS NULL
+              )`;
+              whereParams.push(searchValue);
+              countParams.push(searchValue);
+              break;
+            case 'status':
+              whereClause += ` AND p.status LIKE ?`;
+              whereClauseCount += ` AND status LIKE ?`;
+              whereParams.push(searchValue);
+              countParams.push(searchValue);
+              break;
+            case 'author':
+              whereClause += ` AND p.author LIKE ?`;
+              whereClauseCount += ` AND author LIKE ?`;
+              whereParams.push(searchValue);
+              countParams.push(searchValue);
+              break;
+            case 'date':
+              whereClause += ` AND DATE_FORMAT(p.created_at, '%d/%m/%Y') LIKE ?`;
+              whereClauseCount += ` AND DATE_FORMAT(created_at, '%d/%m/%Y') LIKE ?`;
+              whereParams.push(searchValue);
+              countParams.push(searchValue);
+              break;
+          }
+        }
       }
   
       const [countResults] = await db.query(
-        `SELECT COUNT(*) as total FROM posts WHERE ${whereClauseCount}`
+        `SELECT COUNT(*) as total FROM posts WHERE ${whereClauseCount}`,
+        countParams
       );
   
       const total = countResults[0].total;
   
-      const [posts] = await db.execute(
-        `SELECT p.id, p.title, p.slug, p.category_id, p.user_id, p.featured_image, p.content, p.author, p.meta_title, p.meta_description, p.keywords, p.status, c.name AS category_name, p.created_at, p.updated_at
+      // const [posts] = await db.execute(
+      //   `SELECT p.id, p.title, p.slug, p.category_id, p.user_id, p.featured_image, p.content, p.author, p.meta_title, p.meta_description, p.keywords, p.status, c.name AS category_name, p.created_at, p.updated_at
+      //   FROM posts p
+      //   JOIN categories c ON p.category_id = c.id
+      //   WHERE ${whereClause}
+      //   ORDER BY p.created_at DESC
+      //   LIMIT ${limit} OFFSET ${offset}`
+      // );
+
+      // const [posts] = await db.execute(
+      //   `SELECT p.id, p.title, p.slug, p.category_id, p.user_id, p.featured_image, 
+      //           p.content, p.author, p.meta_title, p.meta_description, p.keywords, 
+      //           p.status, c.name AS category_name, p.created_at, p.updated_at
+      //    FROM posts p
+      //    JOIN categories c ON p.category_id = c.id
+      //    WHERE ${whereClause}
+      //    ORDER BY p.created_at DESC
+      //    LIMIT ? OFFSET ?`,
+      //   [...whereParams, parseInt(limit), parseInt(offset)]
+      // );
+
+      const query = `
+        SELECT p.id, p.title, p.slug, p.category_id, p.user_id, p.featured_image, 
+              p.content, p.author, p.meta_title, p.meta_description, p.keywords, 
+              p.status, c.name AS category_name, p.created_at, p.updated_at
         FROM posts p
         JOIN categories c ON p.category_id = c.id
         WHERE ${whereClause}
         ORDER BY p.created_at DESC
-        LIMIT ${limit} OFFSET ${offset}`
-      );
+        LIMIT ${numericLimit} OFFSET ${offset}
+      `;
+
+      const [posts] = await db.query(query, whereParams);
   
       return {
         posts,
         pagination: {
           total,
           pages: Math.ceil(total/limit),
-          currentPage: page,
-          limit
+          currentPage: numericPage,
+          limit: numericLimit
         }
       }
     } catch (error) {
-      console.error('Error fetching all posts:', error);
+      console.error('Error details:', {
+        message: error.message,
+        sql: error.sql,
+        parameters: error.parameters
+      });
       throw new Error('Failed to fetch all posts')
     }
   };
