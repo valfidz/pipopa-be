@@ -14,9 +14,23 @@ class PostController {
       const author = req.body.author ? req.body.author : "";
       const metaTitle = req.body.meta_title ? req.body.meta_title : "";
       const metaDescription = req.body.meta_description ? req.body.meta_description : "";
-      const keywords = req.body.keywords ? req.body.keywords : "";
+      // const keywords = req.body.keywords ? req.body.keywords : "";
       const status = req.body.status ? req.body.status : "draft";
       let featuredImage = req.file ? req.file.filename : null;
+      let keywords = [];
+      let tags = [];
+
+      if (req.body.keywords) {
+        keywords = Array.isArray(req.body.keywords)
+          ? req.body.keywords
+          : req.body.keywords.split(',').map(k => k.trim()).filter(k => k);
+      }
+
+      if (req.body.tags) {
+        tags = Array.isArray(req.body.tags)
+          ? req.body.tags
+          : req.body.tags.split(',').map(t => t.trim()).filter(t => t);
+      }
 
       if (featuredImage) {
         featuredImage = featuredImage.replace(/\s+/g, "_");
@@ -61,6 +75,7 @@ class PostController {
         metaTitle,
         metaDescription,
         keywords,
+        tags,
         status,
         featuredImage
       };
@@ -78,7 +93,7 @@ class PostController {
       });
     } catch (error) {
       console.error("Error creating post: ", error);
-      res.status(500).json({ message: "Error create post" });
+      res.status(500).json({ message: "Error create post", error: error.message });
     }
   }
 
@@ -204,9 +219,23 @@ class PostController {
       const author = req.body.author ? req.body.author : "";
       const metaTitle = req.body.meta_title ? req.body.meta_title : "";
       const metaDescription = req.body.meta_description ? req.body.meta_description : "";
-      const keywords = req.body.keywords ? req.body.keywords : "";
+      // const keywords = req.body.keywords ? req.body.keywords : "";
       const status = req.body.status ? req.body.status : "draft";
-      const featuredImage = req.file ? req.file.filename : null;
+      let featuredImage = req.file ? req.file.filename : null;
+      let keywords = [];
+      let tags = [];
+
+      if (req.body.keywords) {
+        keywords =  Array.isArray(req.body.keywords)
+          ? req.body.keywords
+          : req.body.keywords.split(',').map(k => k.trim()).filter(k => k);
+      }
+
+      if (req.body.tags) {
+        tags = Array.isArray(req.body.tags)
+          ? req.body.tags
+          : req.body.tags.split(',').map(t => t.trim()).filter(t => t);
+      }
 
       if (!title) {
         return res.status(400).json({
@@ -247,9 +276,15 @@ class PostController {
         metaTitle,
         metaDescription,
         keywords,
+        tags,
         status,
         featuredImage
       };
+
+      const existingPost = await PostModel.getAdminPostById(postId);
+      if (!existingPost) {
+        return res.status(404).json({ message: "Post not found" })
+      }
 
       const updated = await PostModel.updatePost(postId, postData);
 
@@ -315,7 +350,7 @@ class PostController {
       res.json({ message: "Post deleted successfully" });
     } catch (error) {
       console.error("Error deleting post:", error);
-      res.status(500).json({ message: "Database error" });
+      res.status(500).json({ message: "Database error", error: error.message });
     }
   }
 
