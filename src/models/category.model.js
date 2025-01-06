@@ -36,14 +36,47 @@ class CategoryModel {
         }
     }
 
-    static async getCategories() {
+    static async getCategories(page = 1, limit = 10, search) {
         const connection = await db.getConnection();
         try {
+            const offset = (page - 1) * limit;
+            const numericPage = parseInt(page);
+            const numericLimit = parseInt(limit);
+
+            let whereClause = 'deleted_at IS NULL';
+            let params = []
+
+            if (search && search.trim() !== '') {
+                const searchValue = `%${search.trim()}%`;
+
+                whereClause += ` AND name LIKE ?`;
+                params.push(searchValue);
+            }
+
+            const [countResults] = await db.query(
+                `SELECT COUNT(*) as total FROM categories WHERE ${whereClause}`,
+                params
+            );
+
+            const total = countResults[0].total;
+
             const [result] = await connection.execute(
-                `SELECT id, name FROM categories WHERE deleted_at IS NULL`
+                `SELECT id, name FROM categories
+                    WHERE ${whereClause}
+                    ORDER BY created_at DESC
+                    LIMIT ${numericLimit} OFFSET ${offset}`,
+                    params
             )
 
-            return result;
+            return {
+                result,
+                pagination: {
+                    total,
+                    pages: Math.ceil(total/limit),
+                    currentPage: numericPage,
+                    limit: numericLimit
+                }
+            };
         } finally {
             connection.release();
         }

@@ -3,7 +3,7 @@ const CategoryModel = require('../../models/category.model');
 class CategoryController {
     static async create (req, res) {
         try {
-            const name = req.body.name;
+            const name = req.body.name ? req.body.name.toLowerCase() : "";
 
             const result = await CategoryModel.createCategory(name);
 
@@ -16,7 +16,11 @@ class CategoryController {
 
     static async getAllCategories (req, res) {
         try {
-            const result = await CategoryModel.getCategories();
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const search = req.query.search ? req.query.search.toLowerCase() : "";
+
+            const result = await CategoryModel.getCategories(page, limit, search);
 
             return res.status(200).json({ message: 'Fetch categories success', result });
         } catch (error) {
@@ -41,7 +45,7 @@ class CategoryController {
     static async updateCategory (req, res) {
         try {
             const categoryId = parseInt(req.params.id);
-            const name = req.body.name;
+            const name = req.body.name ? req.body.name.toLowerCase() : "";
 
             const result = await CategoryModel.updateCategory(categoryId, name);
 
