@@ -19,7 +19,14 @@ const app = express();
 const server = http.createServer(app);
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3030', 'http://localhost:5000', 'https://pipopa.id', process.env.BE_SITE],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3030',
+      'http://localhost:5000',
+      'https://pipopa.id',
+      process.env.BE_SITE,
+      process.env.DASHBOARD_SITE
+    ],
     default: 'http://localhost:3000'
 };
 
