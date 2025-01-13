@@ -23,6 +23,7 @@ const corsOptions = {
       'http://localhost:3000',
       'http://localhost:3030',
       'http://localhost:5000',
+      'http://localhost:3001',
       'https://pipopa.id',
       process.env.BE_SITE,
       process.env.DASHBOARD_SITE

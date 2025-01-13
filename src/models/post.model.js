@@ -202,11 +202,24 @@ class PostModel {
       const total = countResults[0].total;
   
       const [posts] = await db.execute(
-        `SELECT id, title, slug, category_id, featured_image, content, author, 
-                meta_title, meta_description, keywords, status, created_at, updated_at 
-         FROM posts 
-         WHERE deleted_at IS NULL AND status = 'published'
-         ORDER BY created_at DESC 
+        `SELECT p.id,
+                p.title,
+                p.slug,
+                p.category_id, 
+                p.featured_image,
+                p.content,
+                p.author, 
+                p.meta_title, 
+                p.meta_description,
+                p.keywords,
+                p.status,
+                p.created_at,
+                p.updated_at,
+                c.name as category_name 
+         FROM posts p
+         JOIN categories c ON p.category_id = c.id
+         WHERE p.deleted_at IS NULL AND p.status = 'published'
+         ORDER BY p.created_at DESC 
          LIMIT ${limit} OFFSET ${offset}`
       );
   
@@ -268,12 +281,26 @@ class PostModel {
   static async getPublicPostBySlug(slug) {
     try {
       const [results] = await db.execute(
-        `SELECT id, title, slug, category_id, featured_image, content, author, 
-                meta_title, meta_description, keywords, status, tags, created_at, updated_at 
-         FROM posts 
-         WHERE slug = ?
-         AND deleted_at IS NULL
-         AND status = 'published'`,
+        `SELECT p.id,
+                p.title,
+                p.slug,
+                p.category_id,
+                p.featured_image,
+                p.content, 
+                p.author, 
+                p.meta_title,
+                p.meta_description,
+                p.keywords,
+                p.status,
+                p.tags,
+                p.created_at,
+                p.updated_at,
+                c.name as category_name 
+         FROM posts p
+         JOIN categories c ON p.category_id = c.id
+         WHERE p.slug = ?
+         AND p.deleted_at IS NULL
+         AND p.status = 'published'`,
         [slug]
       );
   
